@@ -1,0 +1,84 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guardian Wellbeing Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .article-card:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-800">Guardian Wellbeing Articles</h1>
+            <p class="text-gray-600 mt-2">Stay updated with the latest articles about personal wellbeing and mental health</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="articles-container">
+            <!-- Articles will be loaded here -->
+            <div class="animate-pulse bg-white rounded-lg shadow-md p-4">
+                <div class="h-48 bg-gray-200 rounded mb-4"></div>
+                <div class="h-6 bg-gray-200 rounded mb-2"></div>
+                <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchArticles() {
+            try {
+                const response = await fetch('/api/articles');
+                const data = await response.json();
+                
+                if (data.results) {
+                    const articlesContainer = document.getElementById('articles-container');
+                    articlesContainer.innerHTML = '';
+                    
+                    data.results.forEach(article => {
+                        const card = createArticleCard(article);
+                        articlesContainer.appendChild(card);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching articles:', error);
+            }
+        }
+
+        function createArticleCard(article) {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-lg shadow-md overflow-hidden article-card';
+            
+            const thumbnail = article.fields.thumbnail || '/static/placeholder.jpg';
+            const title = article.fields.headline;
+            const description = article.fields.trailText;
+            const date = new Date(article.webPublicationDate).toLocaleDateString();
+            
+            card.innerHTML = `
+                <img src="${thumbnail}" alt="${title}" class="w-full h-48 object-cover">
+                <div class="p-4">
+                    <h2 class="text-xl font-semibold mb-2">${title}</h2>
+                    <p class="text-gray-600 text-sm mb-4">${description}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 text-sm">${date}</span>
+                        <a href="${article.webUrl}" target="_blank" 
+                           class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+                            Read More
+                        </a>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Load articles when the page loads
+        document.addEventListener('DOMContentLoaded', fetchArticles);
+    </script>
+</body>
+</html>
